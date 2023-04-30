@@ -9,6 +9,10 @@ import java.util.Set;
 import org.dfpl.db.hash.m19011654.MyHashSet;
 
 public class UnitTest5 {
+//	[1] true
+//	[2] true
+//	[3] true
+//	[4] true	
 	public static void main(String[] args) {
 		Set<Integer> set1 = new HashSet<Integer>();
 		// 위의 set2이 아니라 학생들의 MyHashSet으로 동일하게 동작해야 함

@@ -14,7 +14,10 @@ public class MyHashSet<T> implements Set<Integer> {
 	private MyThreeWayBTree[] hashTable;
 
 	public MyHashSet() {
+		Iterator<HashSet> it;
 		hashTable = new MyThreeWayBTree[3];
+		for(int i=0; i<3; ++i)
+			hashTable[i] = new MyThreeWayBTree();
 	}
 	
 	private int getHash(Integer e) {
@@ -45,7 +48,7 @@ public class MyHashSet<T> implements Set<Integer> {
 
 	@Override
 	public Iterator<Integer> iterator() {
-		MyIterator<Integer> ret = new MyIterator<>();
+		HashIterator<Integer> ret = new HashIterator<>();
 		for(MyThreeWayBTree e: hashTable) {
 			ret.concat(e.iterator());
 		}

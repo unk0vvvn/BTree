@@ -3,11 +3,11 @@ package org.dfpl.db.hash.m19011654;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-public class MyIterator<T> implements Iterator<T> {
+public class HashIterator<T> implements Iterator<T> {
 	
 	private LinkedList<Iterator<T>> its;
 	
-	public MyIterator(){
+	public HashIterator(){
 		its = new LinkedList<>();
 	}
 	
@@ -29,7 +29,7 @@ public class MyIterator<T> implements Iterator<T> {
 		return null;
 	}
 	
-	public MyIterator<T> concat(Iterator<T> it) {
+	public HashIterator<T> concat(Iterator<T> it) {
 		if(it != null) its.add(it);
 		return this;
 	}
