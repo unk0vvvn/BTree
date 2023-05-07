@@ -78,8 +78,11 @@ public class MyHashSet<T> implements Set<Integer> {
 
 	@Override
 	public boolean remove(Object o) {
-		// TODO Auto-generated method stub
-		return false;
+		int hash = getHash((Integer)o);
+		if(!hashTable[hash].contains(o))
+			return false;
+		
+		return hashTable[hash].remove(o);
 	}
 
 	@Override

@@ -15,7 +15,7 @@ public class MyThreeWayBTree implements NavigableSet<Integer> {
 		root = new MyThreeWayBTreeNode();
 	}
 	
-	protected MyThreeWayBTreeNode getRoot() {
+	public MyThreeWayBTreeNode getRoot() {
 		return root;
 	}
 	
@@ -77,13 +77,22 @@ public class MyThreeWayBTree implements NavigableSet<Integer> {
 
 	@Override
 	public boolean add(Integer e) {
+		if(contains(e)) return false;
+		
 		return root.add(e);
 	}
 
 	@Override
 	public boolean remove(Object o) {
-		// TODO Auto-generated method stub
-		return false;
+		int e = (int)o;
+		if(!contains(e)) return false;
+		
+		boolean ret = root.delete(e);
+		if(root.getChilds().size() == 1) {
+			root = root.getChilds().get(0);
+		}
+		
+		return ret;
 	}
 
 	@Override

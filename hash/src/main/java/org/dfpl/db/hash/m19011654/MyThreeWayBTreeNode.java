@@ -16,10 +16,7 @@ public class MyThreeWayBTreeNode {
 		keyList = new LinkedList<>();
 		children = new LinkedList<>();
 	}
-	
-	public MyThreeWayBTreeNode getParent() {
-		return parent;
-	}
+
 	
 	public List<Integer> getKeys(){
 		return keyList;
@@ -29,19 +26,15 @@ public class MyThreeWayBTreeNode {
 		return children;
 	}
 	
-	public boolean contains(int e) {
+	public boolean contains(Integer e) {
 		if(keyList.size() == 0) return false;
 		
 		int i=0;
 		while(i < keyList.size()) {
 			int v = (int) keyList.get(i);
 			if(v == e) return true;
-			else if(v > e) {
-				if(i >= children.size()) return false;
-				
+			else if(v > e && i < children.size()) 
 				return children.get(i).contains(e);
-			}
-			
 			
 			i++;
 		}
@@ -50,8 +43,8 @@ public class MyThreeWayBTreeNode {
 		return children.get(i).contains(e);
 	}
 	
-	public boolean add(int e) {
-		if(children.size() == 0) {
+	public boolean add(Integer e) {
+		if(children.size() == 0) { //leaf node
 			int i=0;
 			while(i<keyList.size()) {
 				int v = (int) keyList.get(i);
@@ -63,9 +56,9 @@ public class MyThreeWayBTreeNode {
 				i++;
 			}
 			if(i == keyList.size())
-				keyList.add(i,e);
+				keyList.add(e);
 			
-			reconstruct();
+			balanceMaxKeyProperty();
 			return true;
 		}
 		
@@ -79,53 +72,167 @@ public class MyThreeWayBTreeNode {
 		return children.get(children.size()-1).add(e);
 	}
 	
-	private void reconstruct() {
+	private void balanceMaxKeyProperty() {
 		if(keyList.size() < 3) return;
 		
-		MyThreeWayBTreeNode left = new MyThreeWayBTreeNode();
-		MyThreeWayBTreeNode right = new MyThreeWayBTreeNode();
 		
-		left.add(keyList.get(0));
-		right.add(keyList.get(keyList.size()-1));
-		
-		if(this.parent == null) {
-			if(children.size() != 0) {
-				left.children = this.children.subList(0, 2);
-				right.children = this.children.subList(2, 4);
+		if(this.parent == null) { // root node
+			MyThreeWayBTreeNode left = new MyThreeWayBTreeNode();
+			MyThreeWayBTreeNode right = new MyThreeWayBTreeNode();
+			
+			left.addKey(keyList.remove(0));
+			right.addKey(keyList.remove(1));
+			
+			left.parent = this;
+			right.parent = this;
+			
+			if(children.size() == 4) {
+				for(var c: this.children.subList(0, 2)) 
+					left.addChild(c);
+				
+				for(var c: this.children.subList(2, 4)) 
+					right.addChild(c);
 			}
-			this.keyList = this.keyList.subList(1, 2);
 			
 			this.children.clear();
 			this.children.add(left);
 			this.children.add(right);
+			
 		} else {
-			int midK = this.keyList.get(1);
+			var node = new MyThreeWayBTreeNode();
+			node.addKey(keyList.remove(2));
+			node.parent = parent;
+			parent.children.add(node);
 			
-			var parentKeys = parent.keyList;
-			var parentChilds = parent.children;
+			if(children.size() == 4) {
+				node.addChild(children.remove(2));
+				node.addChild(children.remove(2));
+			}
 			
-			int i=0;
-			while(i<parentKeys.size()) {
-				if(parentKeys.get(i) > midK) {
-					parentKeys.add(i, midK);
+			int midK = this.keyList.remove(1);
+			parent.addKey(midK);
+		}
+	}
+	
+	private void addKey(int e) {
+		int idx = 0;
+		while(idx < keyList.size() && keyList.get(idx) < e)
+			idx++;
+		
+		keyList.add(idx, e);
+		
+		balanceMaxKeyProperty();
+	}
+	
+	private void addChild(MyThreeWayBTreeNode e) {
+		int idx = 0, minV = e.keyList.get(0);
+		
+		while(idx < children.size()) {
+			var child = children.get(idx);
+			if(child.getKeys().get(0) > minV) break;
+			
+			idx++;
+		}
+		
+		children.add(idx, e);
+		e.parent = this;
+	}
+	
+	public boolean delete(Integer e) {
+		if(!contains(e)) return false;
+		
+		boolean isRemoved = false;
+		for(int i=0; i<keyList.size(); ++i) {
+			int k = keyList.get(i);
+			if(k == e) {
+				keyList.remove(i);
+				isRemoved = true;
+				break;
+			} else if(k > e)
+				return children.get(i).delete(e);
+		}
+		if(!isRemoved)
+			return children.get(children.size()-1).delete(e);
+		
+		balanceMinKeyProperty();
+		
+		return true;
+	}
+	
+	private void balanceMinKeyProperty() {
+		if(keyList.size() > 0 || parent == null) return;
+		
+		if(children.size() == 2) { //internal node
+			var leftSuccessor = getLeftSuccessor();
+			var rightSuccessor = getRightSuccessor();
+			
+			if(leftSuccessor.keyList.size() > 1) {
+				Integer borrowK = leftSuccessor.keyList.remove(keyList.size()-1);
+				this.addKey(borrowK);
+				
+			} else if(rightSuccessor.keyList.size() > 1) {
+				Integer borrowK = rightSuccessor.keyList.remove(keyList.size()-1);
+				this.addKey(borrowK);
+				
+			} else {
+				Integer borrowK = leftSuccessor.keyList.remove(keyList.size()-1);
+				this.addKey(borrowK);
+				
+				leftSuccessor.balanceMinKeyProperty();
+			}
+			
+		} else { 
+			int mergeIdx = 0, borrowIdx = 0, i;
+			
+			for(i=0; i<parent.children.size(); ++i) {
+				var child = parent.children.get(i);
+				if(child.keyList.size() == 0) { //deleted node
+					if(i == 0) 
+						mergeIdx = 1;
+					else 
+						mergeIdx = i-1;
 					
-					parentChilds.add(i, left);
-					parentChilds.add(i+1, right);
+					borrowIdx = i / 2;
 					
 					break;
 				}
-				
-				i++;
-			}
-			if(i == parentKeys.size()) {
-				parentKeys.add(i, midK);
-				
-				parentChilds.add(i, left);
-				parentChilds.add(i+1, right);
 			}
 			
-			parent.reconstruct();
+
+			var mergeNode = parent.children.get(mergeIdx);
+			mergeNode.addKey(parent.keyList.remove(borrowIdx));
+			
+			if(children.size() == 1)  // after leaf node balancing
+				mergeNode.addChild(children.get(0));
+			
+			parent.children.remove(i);
 		}
+		
+		parent.balanceMinKeyProperty();
+	}
+	
+	private MyThreeWayBTreeNode getLeftSuccessor() {
+		if(children.size() == 0) return null;
+		
+		var ret = children.get(0);
+		while(ret.children.size() != 0) {
+			var childs = ret.children;
+			ret = childs.get(childs.size()-1);
+		}
+		
+		return ret;
+	}
+	
+	private MyThreeWayBTreeNode getRightSuccessor() {
+		if(children.size() == 0) return null;
+		
+		var ret = children.get(children.size()-1);
+		while(ret.children.size() != 0) {
+			var childs = ret.children;
+			ret = childs.get(0);
+		}
+		
+		return ret;
 	}
 	
 	public void traverse(List<Integer> q){

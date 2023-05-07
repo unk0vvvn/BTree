@@ -28,7 +28,9 @@ public class UnitTest5 {
 
 		// true가 반환되어야만 합니다.
 		System.out.println("[1] " + (set1.size() == set2.size()));
-
+		System.out.println("set1: " + set1.size());
+		System.out.println("set2: " + set2.size());
+		
 		boolean isDifferent = false;
 		for (int set1Value : set1) {
 			if (!set2.contains(set1Value)) {
