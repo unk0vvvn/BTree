@@ -31,7 +31,7 @@ public class MyThreeWayBTreeNode {
 		
 		int i=0;
 		while(i < keyList.size()) {
-			int v = (int) keyList.get(i);
+			int v = keyList.get(i);
 			if(v == e) return true;
 			else if(v > e && i < children.size()) 
 				return children.get(i).contains(e);
@@ -44,30 +44,16 @@ public class MyThreeWayBTreeNode {
 	}
 	
 	public boolean add(Integer e) {
-		if(children.size() == 0) { //leaf node
-			int i=0;
-			while(i<keyList.size()) {
-				int v = (int) keyList.get(i);
-				if(v == e) return false;
-				else if(v > e) {
-					keyList.add(i,e);
-					break;
-				}
-				i++;
-			}
-			if(i == keyList.size())
-				keyList.add(e);
-			
-			balanceMaxKeyProperty();
-			return true;
-		}
+		if(children.size() == 0)//leaf node
+			return addKey(e);
 		
 		for(int i=0; i<keyList.size(); ++i) {
 			int v = keyList.get(i);
+			
 			if(v == e) return false;
-			else if(v > e) {
+			else if(v > e && i < children.size()) 
 				return children.get(i).add(e);
-			}
+			
 		}
 		return children.get(children.size()-1).add(e);
 	}
@@ -83,9 +69,6 @@ public class MyThreeWayBTreeNode {
 			left.addKey(keyList.remove(0));
 			right.addKey(keyList.remove(1));
 			
-			left.parent = this;
-			right.parent = this;
-			
 			if(children.size() == 4) {
 				for(var c: this.children.subList(0, 2)) 
 					left.addChild(c);
@@ -95,14 +78,13 @@ public class MyThreeWayBTreeNode {
 			}
 			
 			this.children.clear();
-			this.children.add(left);
-			this.children.add(right);
+			this.addChild(left);
+			this.addChild(right);
 			
 		} else {
 			var node = new MyThreeWayBTreeNode();
 			node.addKey(keyList.remove(2));
-			node.parent = parent;
-			parent.children.add(node);
+			parent.addChild(node);
 			
 			if(children.size() == 4) {
 				node.addChild(children.remove(2));
@@ -114,22 +96,28 @@ public class MyThreeWayBTreeNode {
 		}
 	}
 	
-	private void addKey(int e) {
-		int idx = 0;
-		while(idx < keyList.size() && keyList.get(idx) < e)
+	private boolean addKey(int e) {
+		int idx = 0, v;
+		while(idx < keyList.size()) {
+			v = keyList.get(idx);
+			if(v > e) break;
+			else if(v == e) return false;
 			idx++;
+		}
 		
 		keyList.add(idx, e);
 		
 		balanceMaxKeyProperty();
+		
+		return true;
 	}
 	
 	private void addChild(MyThreeWayBTreeNode e) {
-		int idx = 0, minV = e.keyList.get(0);
 		
+		int idx = 0, minV = e.keyList.get(0);
 		while(idx < children.size()) {
 			var child = children.get(idx);
-			if(child.getKeys().get(0) > minV) break;
+			if(child.keyList.get(0) > minV) break;
 			
 			idx++;
 		}
@@ -148,7 +136,7 @@ public class MyThreeWayBTreeNode {
 				keyList.remove(i);
 				isRemoved = true;
 				break;
-			} else if(k > e)
+			} else if(k > e && i < children.size())
 				return children.get(i).delete(e);
 		}
 		if(!isRemoved)
@@ -160,28 +148,24 @@ public class MyThreeWayBTreeNode {
 	}
 	
 	private void balanceMinKeyProperty() {
-		if(keyList.size() > 0 || parent == null) return;
+		if(keyList.size() > 0) return;
 		
 		if(children.size() == 2) { //internal node
 			var leftSuccessor = getLeftSuccessor();
 			var rightSuccessor = getRightSuccessor();
 			
-			if(leftSuccessor.keyList.size() > 1) {
-				Integer borrowK = leftSuccessor.keyList.remove(keyList.size()-1);
-				this.addKey(borrowK);
-				
-			} else if(rightSuccessor.keyList.size() > 1) {
+			if(rightSuccessor.keyList.size() > 1) {
 				Integer borrowK = rightSuccessor.keyList.remove(keyList.size()-1);
 				this.addKey(borrowK);
+				rightSuccessor.balanceMinKeyProperty();
 				
 			} else {
 				Integer borrowK = leftSuccessor.keyList.remove(keyList.size()-1);
 				this.addKey(borrowK);
-				
 				leftSuccessor.balanceMinKeyProperty();
 			}
 			
-		} else { 
+		} else {                
 			int mergeIdx = 0, borrowIdx = 0, i;
 			
 			for(i=0; i<parent.children.size(); ++i) {
@@ -198,7 +182,6 @@ public class MyThreeWayBTreeNode {
 				}
 			}
 			
-
 			var mergeNode = parent.children.get(mergeIdx);
 			mergeNode.addKey(parent.keyList.remove(borrowIdx));
 			
