@@ -37,6 +37,10 @@ public class MyThreeWayBTree implements NavigableSet<Integer> {
 		return null;
 	}
 
+	/*
+	 * 각 노드를 루트로 하는 트리의 크기의 합을 구하면 되므로
+	 * bfs를 통해 구현함
+	 */
 	@Override
 	public int size() {
 		int cnt = root.getKeys().size();
@@ -82,6 +86,10 @@ public class MyThreeWayBTree implements NavigableSet<Integer> {
 		return root.add(e);
 	}
 
+	/*
+	 *  키 하나를 삭제한 뒤에 자식 노드가 1개라면
+	 *  루트 노드가 바뀌는 경우임.
+	 */
 	@Override
 	public boolean remove(Object o) {
 		int e = (int)o;

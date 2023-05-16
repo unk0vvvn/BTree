@@ -9,10 +9,6 @@ import java.util.Set;
 import org.dfpl.db.hash.m19011654.MyHashSet;
 
 public class UnitTest5 {
-//	[1] true
-//	[2] true
-//	[3] true
-//	[4] true	
 	public static void main(String[] args) {
 		Set<Integer> set1 = new HashSet<Integer>();
 		// 위의 set2이 아니라 학생들의 MyHashSet으로 동일하게 동작해야 함
@@ -28,8 +24,6 @@ public class UnitTest5 {
 
 		// true가 반환되어야만 합니다.
 		System.out.println("[1] " + (set1.size() == set2.size()));
-		System.out.println("set1: " + set1.size());
-		System.out.println("set2: " + set2.size());
 		
 		boolean isDifferent = false;
 		for (int set1Value : set1) {
@@ -55,6 +49,7 @@ public class UnitTest5 {
 		ArrayList<Integer> removedList = new ArrayList<Integer>();
 		Iterator<Integer> removeIter = set1.iterator();
 		int rCount = 0;
+		
 		while (removeIter.hasNext()) {
 			if (rCount == 1000)
 				break;
